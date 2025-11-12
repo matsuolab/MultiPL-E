@@ -277,8 +277,8 @@ def translate_tests(
 
 def target_path(args, translator, file):
     file = Path(file).resolve()
-    cleaned_task_id = re.search("HumanEval_\d+", file.name).group(0)
-    entry_point = re.search("(HumanEval_\d+)_(.+).py", file.name).group(2)
+    cleaned_task_id = re.search(r"HumanEval_\d+", file.name).group(0)
+    entry_point = re.search(r"(HumanEval_\d+)_(.+).py", file.name).group(2)
     file_ext = get_file_ext_from_translator(translator)
     filename = Path(
         file.parent,
@@ -358,7 +358,22 @@ def translate_prompt_and_tests(
     add_canonical_to_prompt=False,
     panic_on_test_fail=True,
 ):
-    entry_point = re.search("([^0-9]+_\d+)_(.+).py", original_file.name).group(2)
+    filename = original_file.name
+
+    # ★★★ 修正: 関数名を抽出 ★★★
+    # sample_X_function_name_cY_aZ.py 形式
+    match = re.search(r"sample_\d+_([a-zA-Z_][a-zA-Z0-9_]*)_c\d+_a\d+\.py", filename)
+    if match:
+        entry_point = match.group(1)  # 関数名
+    else:
+        # HumanEval_123_function_name.py 形式
+        match = re.search(r"([^0-9]+_\d+)_(.+)\.py", filename)
+        if match:
+            entry_point = match.group(2)
+        else:
+            print(f"[ERROR] Cannot extract entry_point from: {filename}")
+            return None
+
     reading_prompt = True
     reading_tests = False
     reading_canonical = False
@@ -428,14 +443,24 @@ def get_stop_from_translator(translator) -> List[str]:
 
 
 def list_originals(root):
-    directory = Path(Path(__file__).parent, "..", "datasets").resolve()
-    files_unsorted = directory.glob(f"{root}/*.py")
+    directory = Path(root).resolve()
+    files_unsorted = directory.glob("*.py")
 
-    # assumption: base filenames are in the format of HumanEval_X_*.py
-    # Where X is a valid number
-    def key_func(s):
-        return int(str(s.name).split("_")[1])
+    def key_func(file):
+        filename = str(file.name)
+
+        # ★★★ 修正: sample_X_function_name_cY_aZ.py 形式 ★★★
+        match = re.match(r"sample_(\d+)_[a-zA-Z_][a-zA-Z0-9_]*_c\d+_a\d+", filename)
+        if match:
+            return int(match.group(1))
+
+        # HumanEval_X_*.py 形式
+        match = re.search(r"HumanEval_(\d+)_", filename)
+        if match:
+            return int(match.group(1))
+
+        return 0
 
     files_by_number = {key_func(file): file for file in files_unsorted}
-
     return files_by_number
+#     return files_by_name
