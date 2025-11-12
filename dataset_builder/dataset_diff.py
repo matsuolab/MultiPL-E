@@ -7,37 +7,33 @@
 """
 This script summarizes the delta between two revisions of MultiPL-E.
 """
-import datasets
 import argparse
-import pandas as pd
-from typing import List
-from tqdm.auto import tqdm
 import difflib
 from pathlib import Path
+from typing import List
+
+import pandas as pd
+from tqdm.auto import tqdm
+
+import datasets
 
 # cspell:ignore nuprl tqdm dataframes iloc
+
 
 def simple_diff(txt1: str, txt2: str):
     differ = difflib.Differ()
     return "\n".join(differ.compare(txt1.splitlines(), txt2.splitlines()))
 
+
 def find_common_configs_and_report_added_and_removed(
-    path: str,  old_revision: str, new_revision: str
+    path: str, old_revision: str, new_revision: str
 ) -> List[str]:
     """
     Returns the list of common configs. Prints the configs added and removed
     between the two revisions.
     """
-    old_configs = set(
-        datasets.get_dataset_config_names(
-            path, revision=old_revision
-        )
-    )
-    new_configs = set(
-        datasets.get_dataset_config_names(
-            path, revision=new_revision
-        )
-    )
+    old_configs = set(datasets.get_dataset_config_names(path, revision=old_revision))
+    new_configs = set(datasets.get_dataset_config_names(path, revision=new_revision))
 
     removed_configs = list(old_configs - new_configs)
     removed_configs.sort()
@@ -58,7 +54,9 @@ def find_common_configs_and_report_added_and_removed(
     return common_splits
 
 
-def compare_configs_revisions(path: str, config: str, old_revision: str, new_revision: str):
+def compare_configs_revisions(
+    path: str, config: str, old_revision: str, new_revision: str
+):
     old_df = datasets.load_dataset(
         path, config, split="test", revision=old_revision
     ).to_pandas()
@@ -67,22 +65,26 @@ def compare_configs_revisions(path: str, config: str, old_revision: str, new_rev
     ).to_pandas()
 
     # Outer join includes rows that are in either of the dataframes.
-    merged_df = pd.merge(new_df, old_df, on="name", how="inner", suffixes=('_new', '_old'))
-    merged_df = merged_df[["name", "prompt_new", "prompt_old", "tests_new", "tests_old"]]
+    merged_df = pd.merge(
+        new_df, old_df, on="name", how="inner", suffixes=("_new", "_old")
+    )
+    merged_df = merged_df[
+        ["name", "prompt_new", "prompt_old", "tests_new", "tests_old"]
+    ]
     merged_df = merged_df.copy()
     merged_df["split"] = config
-    merged_df = merged_df[(merged_df['prompt_new'] != merged_df['prompt_old']) | (merged_df['tests_new'] != merged_df['tests_old'])]
+    merged_df = merged_df[
+        (merged_df["prompt_new"] != merged_df["prompt_old"])
+        | (merged_df["tests_new"] != merged_df["tests_old"])
+    ]
     return merged_df
 
 
-def main_with_args(
-    path: str, old_revision: str, new_revision: str,
-    output_dir: Path
-):
+def main_with_args(path: str, old_revision: str, new_revision: str, output_dir: Path):
     common_splits = find_common_configs_and_report_added_and_removed(
         path, old_revision, new_revision
     )
-    diffs = [ ]
+    diffs = []
     for split in tqdm(common_splits, desc="Common splits"):
         diff = compare_configs_revisions(path, split, old_revision, new_revision)
         diffs.append(diff)
@@ -98,9 +100,6 @@ def main_with_args(
         if item["tests_old"] != item["tests_new"]:
             with open(output_dir / f"{split}_tests_{name}.diff", "w") as f:
                 f.write(simple_diff(item["tests_old"], item["tests_new"]))
-
-
-    
 
 
 def main():
@@ -119,7 +118,9 @@ def main():
     parser.add_argument(
         "--new_revision", type=str, help="New revision of the dataset", default="main"
     )
-    parser.add_argument("--output-dir", type=Path, required=True, help="Path to output the diffs")
+    parser.add_argument(
+        "--output-dir", type=Path, required=True, help="Path to output the diffs"
+    )
     args = parser.parse_args()
     args_dict = vars(args)
     main_with_args(**args_dict)
