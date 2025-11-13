@@ -33,6 +33,10 @@ def main():
     )
 
     args.add_argument(
+        "--output", type=str, help="Target JSON file"
+    )
+
+    args.add_argument(
         "--doctests",
         type=str,
         default="transform",
@@ -52,7 +56,11 @@ def main():
         help="Add the canonical function implementation to the prompt. Useful for assisting the model in inferring the correct function.",
     )
 
-    
+    args.add_argument(
+        "--remove-docstring",
+        action="store_true",
+        help="Remove entire docstring from the translated prompt"
+    )
 
     args.add_argument(
         "--skip-failing-tests",
@@ -60,7 +68,7 @@ def main():
         help="Skips tests that fail to translate. By default, if a test fails to translate, the entire problem is skipped.",
     )
 
-    args.add_argument("--dataset-name", type=str, default="nuprl-staging/MultiPL-E")
+    args.add_argument("--dataset-name", type=str)
     
     args.add_argument("--original-dataset", type=str, required=True)
 
@@ -90,6 +98,7 @@ def main():
             args.doctests,
             args.prompt_terminology,
             add_canonical_to_prompt=args.add_canonical_to_prompt,
+            remove_docstring=args.remove_docstring,
             panic_on_test_fail=not args.skip_failing_tests,
         )
 
@@ -117,17 +126,26 @@ def main():
     print(f"  Num originals: {len(originals)}")
     print(f"  Num translated: {len(results)}")
     print(f"  Translation ratio: {len(results) / len(originals):.2f}")
-    dataset = datasets.Dataset.from_list(results)
 
-    config_lang = translator.file_ext()
-    if config_lang == "go_test.go":
-        config_lang = "go"
+    if args.output:
+        with open(args.output, "w") as f:
+            for item in results:
+                json.dump(item, f)
+                f.write("\n")
 
-    
-    config_name = f"{args.original_dataset}-{config_lang}"
-    
-    dataset.push_to_hub(
-        args.dataset_name, split="test", config_name=config_name)
+    if args.dataset_name:
+        dataset = datasets.Dataset.from_list(results)
+
+
+        config_lang = translator.file_ext()
+        if config_lang == "go_test.go":
+            config_lang = "go"
+
+        
+        config_name = f"{args.original_dataset}-{config_lang}"
+        
+        dataset.push_to_hub(
+            args.dataset_name, split="test", config_name=config_name)
 
 
 

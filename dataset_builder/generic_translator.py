@@ -73,118 +73,123 @@ class PromptVisitor(ast.NodeVisitor):
             case _other:
                 self.state = "error"
 
-    def translate_func_decl(self, doctest_transformation: str) -> str | None:
+    def translate_func_decl(self, doctest_transformation: str, remove_docstring: bool) -> str | None:
         if self.state != "complete":
             return None
-        match doctest_transformation:
-            case "keep":
-                desc = self.description
-            case "remove":
-                doctestRegex = re.compile(r">>>.*\n.*\n")
-                desc = re.sub(doctestRegex, "", self.description)
-                if desc == self.description:
-                    print("skipping (no doctests to remove)")
-                    return None
-            case "transform":
-                # We first run the translate_prompt with the original
-                # prompt. This is a hack! We need each script to have some sort
-                # of setup method that remembers type information and such. But,
-                # people have already done so in translate_prompt because it used
-                # to be called first all the time. Calling it here as a setup
-                # function should hopefully(!) not break anything
-                self.translator.translate_prompt(
-                    self.name, self.args, self.returns, self.description
+
+        if remove_docstring:
+            desc = ""
+        else:
+            match doctest_transformation:
+                case "keep":
+                    desc = self.description
+                case "remove":
+                    doctestRegex = re.compile(r">>>.*\n.*\n")
+                    desc = re.sub(doctestRegex, "", self.description)
+                    if desc == self.description:
+                        print("skipping (no doctests to remove)")
+                        return None
+                case "transform":
+                    # We first run the translate_prompt with the original
+                    # prompt. This is a hack! We need each script to have some sort
+                    # of setup method that remembers type information and such. But,
+                    # people have already done so in translate_prompt because it used
+                    # to be called first all the time. Calling it here as a setup
+                    # function should hopefully(!) not break anything
+                    self.translator.translate_prompt(
+                        self.name, self.args, self.returns, self.description
+                    )
+
+                    # Steps:
+                    # Find the Python expression and result in each doctest
+                    # py_ast = ast.parse("PYTHON EXPRESSION", "bogus filename")
+                    # translate_expr(py_ast, self.translator) to get the string for that expression in the target language
+
+                    # Split up the prompt from the doctests
+                    # promptAndDoctests = self.description.split('>>>')
+                    if ">>>" in self.description:  # checking if there are doctests
+                        doctestRegex = re.compile(r">>>.*\n.*\n")
+                        onlyDocTests = []
+                        for m in re.finditer(doctestRegex, self.description):
+                            onlyDocTests.append((m.start(), m.end()))
+                        desc = ""
+                        pos = 0
+                        for i in onlyDocTests:
+                            desc += self.description[pos : i[0]]
+                            doctest = self.description[i[0] : i[1]]
+                            # Splitting up the output from the function call of the doctest
+                            doclist = doctest.split("\n")
+                            funcCall = ast.parse(doclist[0].strip(">>> ")).body[0].value
+                            output = ast.parse(doclist[1].strip()).body[0].value
+                            transl_funccall = translate_expr(self.translator, funcCall)
+                            transl_output = translate_expr(self.translator, output)
+                            if hasattr(self.translator, "finalize"):
+                                transl_funccall = self.translator.finalize(
+                                    transl_funccall, "lhs"
+                                )
+                                transl_output = self.translator.finalize(
+                                    transl_output, "rhs"
+                                )
+                            # Why is this str() here?
+                            desc += (
+                                ">>> "
+                                + transl_funccall
+                                + "\n    "
+                                + str(transl_output)
+                                + "\n"
+                            )
+                            pos = i[1]
+
+                        desc += self.description[pos:]
+
+                        # for test in (promptAndDoctests[1:]): #Removing each doctest from any junk
+                        #     onlyDocTests.append(doctestRegex.match(test).group())
+
+                        # funcCalls = []
+                        # outputs = []
+                        # for doctest in onlyDocTests:
+                        #     doclist = doctest.split('\n') #Splitting up the output from the function call of the doctest
+                        #     funcCalls.append(ast.parse(doclist[0].strip()).body[0].value)
+                        #     outputs.append(ast.parse(doclist[1].strip()).body[0].value)
+
+                        # for i in range(len(funcCalls)):
+                        #     funcCalls[i] = translate_expr(self.translator, funcCalls[i])
+                        #     outputs[i] = translate_expr(self.translator, outputs[i])
+
+                        # desc = promptAndDoctests[0]
+                        # for i in range(len(funcCalls)):
+                        #     desc += funcCalls[i] + '\n' + outputs[i] + '\n\n'
+                    else:  # else when there are no doctests
+                        # Still return the description, because we are probably rewording!
+                        desc = self.description
+                case _other:
+                    raise Exception(f"bad doctest_transformation")
+            desc_lines = desc.split("\n")
+            # remove all empty lines
+            desc_lines = [line for line in desc_lines if line.strip() != ""]
+
+            # find first indentation amount
+            indent = 0
+            # we skip the first line because typically it is not indented
+            if len(desc_lines) > 1:
+                for line in desc_lines[1:]:
+                    if line.strip() != "":
+                        indent = len(line) - len(line.lstrip())
+                        break
+
+            # remove indentation by that exact amount
+            for i, line in enumerate(desc_lines):
+                deindent = line[indent:]
+                if deindent.lstrip() == line.lstrip():
+                    desc_lines[i] = deindent
+
+            desc = "\n".join(desc_lines)
+
+            if self.added_canonical:
+                desc = (
+                    "## Canonical Python Solution ##\n" + self.added_canonical + "\n" + desc
                 )
 
-                # Steps:
-                # Find the Python expression and result in each doctest
-                # py_ast = ast.parse("PYTHON EXPRESSION", "bogus filename")
-                # translate_expr(py_ast, self.translator) to get the string for that expression in the target language
-
-                # Split up the prompt from the doctests
-                # promptAndDoctests = self.description.split('>>>')
-                if ">>>" in self.description:  # checking if there are doctests
-                    doctestRegex = re.compile(r">>>.*\n.*\n")
-                    onlyDocTests = []
-                    for m in re.finditer(doctestRegex, self.description):
-                        onlyDocTests.append((m.start(), m.end()))
-                    desc = ""
-                    pos = 0
-                    for i in onlyDocTests:
-                        desc += self.description[pos : i[0]]
-                        doctest = self.description[i[0] : i[1]]
-                        # Splitting up the output from the function call of the doctest
-                        doclist = doctest.split("\n")
-                        funcCall = ast.parse(doclist[0].strip(">>> ")).body[0].value
-                        output = ast.parse(doclist[1].strip()).body[0].value
-                        transl_funccall = translate_expr(self.translator, funcCall)
-                        transl_output = translate_expr(self.translator, output)
-                        if hasattr(self.translator, "finalize"):
-                            transl_funccall = self.translator.finalize(
-                                transl_funccall, "lhs"
-                            )
-                            transl_output = self.translator.finalize(
-                                transl_output, "rhs"
-                            )
-                        # Why is this str() here?
-                        desc += (
-                            ">>> "
-                            + transl_funccall
-                            + "\n    "
-                            + str(transl_output)
-                            + "\n"
-                        )
-                        pos = i[1]
-
-                    desc += self.description[pos:]
-
-                    # for test in (promptAndDoctests[1:]): #Removing each doctest from any junk
-                    #     onlyDocTests.append(doctestRegex.match(test).group())
-
-                    # funcCalls = []
-                    # outputs = []
-                    # for doctest in onlyDocTests:
-                    #     doclist = doctest.split('\n') #Splitting up the output from the function call of the doctest
-                    #     funcCalls.append(ast.parse(doclist[0].strip()).body[0].value)
-                    #     outputs.append(ast.parse(doclist[1].strip()).body[0].value)
-
-                    # for i in range(len(funcCalls)):
-                    #     funcCalls[i] = translate_expr(self.translator, funcCalls[i])
-                    #     outputs[i] = translate_expr(self.translator, outputs[i])
-
-                    # desc = promptAndDoctests[0]
-                    # for i in range(len(funcCalls)):
-                    #     desc += funcCalls[i] + '\n' + outputs[i] + '\n\n'
-                else:  # else when there are no doctests
-                    # Still return the description, because we are probably rewording!
-                    desc = self.description
-            case _other:
-                raise Exception(f"bad doctest_transformation")
-        desc_lines = desc.split("\n")
-        # remove all empty lines
-        desc_lines = [line for line in desc_lines if line.strip() != ""]
-
-        # find first indentation amount
-        indent = 0
-        # we skip the first line because typically it is not indented
-        if len(desc_lines) > 1:
-            for line in desc_lines[1:]:
-                if line.strip() != "":
-                    indent = len(line) - len(line.lstrip())
-                    break
-
-        # remove indentation by that exact amount
-        for i, line in enumerate(desc_lines):
-            deindent = line[indent:]
-            if deindent.lstrip() == line.lstrip():
-                desc_lines[i] = deindent
-
-        desc = "\n".join(desc_lines)
-
-        if self.added_canonical:
-            desc = (
-                "## Canonical Python Solution ##\n" + self.added_canonical + "\n" + desc
-            )
         return self.translator.translate_prompt(
             self.name, self.args, self.returns, desc
         )
@@ -196,6 +201,7 @@ def translate_prompt(
     py_prompt: str,
     filename: str,
     added_canonical: str = "",
+    remove_docstring: bool = False,
 ) -> str:
     """
     Reads in a prompt from the HumanEval dataset with "    pass" appended. Translates the prompt to
@@ -205,7 +211,7 @@ def translate_prompt(
         prompt_ast = ast.parse(py_prompt + "    pass", filename)
         prompt_visitor = PromptVisitor(translator, added_canonical)
         prompt_visitor.visit(prompt_ast)
-        return prompt_visitor.translate_func_decl(doctest_transformation)
+        return prompt_visitor.translate_func_decl(doctest_transformation, remove_docstring)
     except Exception as e:
         print(f"Exception translating prompt for {filename}: {e}")
         traceback.print_exception(e)
@@ -356,6 +362,7 @@ def translate_prompt_and_tests(
     doctests,
     prompt_terminology,
     add_canonical_to_prompt=False,
+    remove_docstring=False,
     panic_on_test_fail=True,
 ):
     filename = original_file.name
@@ -413,6 +420,7 @@ def translate_prompt_and_tests(
         prompt,
         original_file.name,
         added_canonical=canonical if add_canonical_to_prompt else "",
+        remove_docstring=remove_docstring,
     )
     # When doctests == "remove" and there are no doctests in prompt, we get None.
     # If not, we could create a translated prompt that is identical to the
