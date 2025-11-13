@@ -30,7 +30,10 @@ class Translator(LanguageTranslator[TargetExp]):
         https://ruby-style-guide.shopify.dev/
         https://github.com/rubocop/ruby-style-guide
         """
-        ruby_description = "# " + re.sub(DOCSTRING_LINESTART_RE, "\n# ", description.strip()) + "\n"
+        ruby_description = ""
+        if description:
+            ruby_description = "# " + re.sub(DOCSTRING_LINESTART_RE, "\n# ", description.strip()) + "\n"
+
         arg_names = [arg.arg for arg in args]
         arg_list = ", ".join(arg_names)
         return f"{ruby_description}def {name}({arg_list.lower()})\n"

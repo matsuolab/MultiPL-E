@@ -19,7 +19,9 @@ class Translator(LanguageTranslator[TargetExp]):
         return "notypes.py"
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str) -> str:
-        py_description = "\"\"\"" + description + "\"\"\""
+        py_description = ""
+        if description:
+            py_description = "\"\"\"" + description + "\"\"\""
         arg_list = ", ".join([arg.arg for arg in args])
         return f"def {name}({arg_list}):\n    {py_description}\n"
 

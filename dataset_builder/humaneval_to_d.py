@@ -60,7 +60,9 @@ class Translator:
                 raise Exception("Unsupported type")
     
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str) -> str:
-        dlang_desc = ("/*\n" + description + "\n*/\n")
+        dlang_desc = ""
+        if description:
+            dlang_desc = ("/*\n" + description + "\n*/\n")
         
         try:
             self.func_type = [(self.translate_type(arg.annotation), arg.arg) for arg in args]

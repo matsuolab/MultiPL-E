@@ -44,9 +44,11 @@ class Translator:
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str):
         comment_start = "-- | " # haddock comment string
 
-        hs_description = (
-            comment_start + re.sub(DOCSTRING_LINESTART_RE, "\n" + "--  ", description.strip()) + "\n"
-        )
+        hs_description = ""
+        if description:
+            hs_description = (
+                comment_start + re.sub(DOCSTRING_LINESTART_RE, "\n" + "--  ", description.strip()) + "\n"
+            )
 
         self.type = [[arg.annotation for arg in args], returns]
 

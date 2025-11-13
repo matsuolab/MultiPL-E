@@ -11,7 +11,10 @@ class Translator:
     stop = ["\nFixpoint", "\nDefinition", "\nExample", "\nProof", "\nAxiom", "\n(*"]
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns: ast.expr, description: str) -> str:
-        coq_description = "(*\n" + description + "\n*)\n"            
+        coq_description = ""
+        if description:
+            coq_description = "(*\n" + description + "\n*)\n"            
+
         self.fn_name = name
         self.type = [[arg.annotation for arg in args], returns]
 

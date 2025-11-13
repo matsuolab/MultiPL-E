@@ -19,9 +19,12 @@ class Translator:
     def translate_prompt(
         self, name: str, args: List[ast.arg], _returns, description: str
     ) -> str:
-        js_description = (
-            "//" + re.sub(DOCSTRING_LINESTART_RE, "\n// ", description.strip()) + "\n"
-        )
+        js_description = ""
+        if description:
+            js_description = (
+                "//" + re.sub(DOCSTRING_LINESTART_RE, "\n// ", description.strip()) + "\n"
+            )
+
         arg_names = [arg.arg for arg in args]
         arg_list = " ".join(arg_names)
         return f"{js_description}let {name} {arg_list}" + " = \n"

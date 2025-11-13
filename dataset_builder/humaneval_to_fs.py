@@ -80,7 +80,9 @@ class Translator:
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str) -> str:
         global needs_hashmap
-        js_description = "//" + re.sub(DOCSTRING_LINESTART_RE, "\n// ", description.strip()) + "\n"
+        js_description = ""
+        if description:
+            js_description = "//" + re.sub(DOCSTRING_LINESTART_RE, "\n// ", description.strip()) + "\n"
         # Store this for later coercions on tests
         needs_hashmap = False
         self.type = [[arg.annotation for arg in args], returns]

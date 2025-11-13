@@ -26,9 +26,12 @@ class Translator:
         return "php"
 
     def translate_prompt(self, name: str, args: List[ast.arg], _returns, description: str) -> str:
-        php_description = (
-            "<?php\n/* " + re.sub(DOCSTRING_LINESTART_RE, "\n", description.strip()) + "*/\n"
-        )
+        php_description = "<?php\n"
+        if description:
+            php_description = (
+                "<?php\n/* " + re.sub(DOCSTRING_LINESTART_RE, "\n", description.strip()) + "*/\n"
+            )
+
         arg_names = ["$" + arg.arg for arg in args]
         arg_list = ", ".join(arg_names)
         return f"{php_description}function {name}({arg_list}) {{\n"

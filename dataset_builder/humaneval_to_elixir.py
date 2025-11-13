@@ -27,9 +27,11 @@ class Translator(LanguageTranslator[TargetExp]):
         self, name: str, args: List[ast.arg], _returns: ast.expr, description: str
     ) -> str:
         """ """
-        elixir_description = (
-            "# " + re.sub(DOCSTRING_LINESTART_RE, "\n# ", description.strip()) + "\n"
-        )
+        elixir_description = ""
+        if description:
+            elixir_description = (
+                "# " + re.sub(DOCSTRING_LINESTART_RE, "\n# ", description.strip()) + "\n"
+            )
         arg_names = [arg.arg for arg in args]
         arg_list = ", ".join(arg_names)
         result_list = [

@@ -12,7 +12,10 @@ class Translator:
     stop = ["\n//", "\n/*", "\nfunction", "\nmethod", "\ntheorem", "\nlemma", "\nprotected def", "\ndef"]
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns: ast.expr, description: str) -> str:
-        lean_description = "/-\n" + description + "\n-/\n"
+        lean_description = ""
+        if lean_description:
+            lean_description = "/-\n" + description + "\n-/\n"
+
         self.fn_name = name
         self.type = [[arg.annotation for arg in args], returns]
 

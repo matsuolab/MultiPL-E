@@ -77,9 +77,11 @@ class Translator:
     stop = ["\n\n", "\n(*", "\ntype", "\nlet"]
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str):
-        description = ( 
-            "(**" + re.sub(DOCSTRING_LINESTART_RE, "\n * ", description.strip()) + "\n*)\n"
-        )
+        if description:
+            description = ( 
+                "(**" + re.sub(DOCSTRING_LINESTART_RE, "\n * ", description.strip()) + "\n*)\n"
+            )
+
         self.type = [[arg.annotation for arg in args], returns]
         def translate_arg(arg):
             return f"({arg.arg} : {translate_type(arg.annotation)})"

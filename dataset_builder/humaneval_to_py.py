@@ -45,7 +45,10 @@ class Translator(LanguageTranslator[TargetExp]):
         return "py"
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str) -> str:
-        py_description = "\"\"\"" + description + "\"\"\""
+        py_description = ""
+        if description:
+            py_description = "\"\"\"" + description + "\"\"\""
+
         needs = []
         add_need = lambda x: needs.append(x) if not x in needs else None
         def name_and_type(arg):

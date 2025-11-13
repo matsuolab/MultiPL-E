@@ -121,9 +121,12 @@ class Translator:
         return "sh"
 
     def translate_prompt(self, name: str, args: List[ast.arg], _returns, description: str) -> str:
-        bash_description = (
-            "#!/bin/bash\n# " + re.sub(DOCSTRING_LINESTART_RE, "\n# ", description.strip()) + "\n"
-        )
+        bash_description = "#!/bin/bash\n"
+        if description:
+            bash_description = (
+                "#!/bin/bash\n# " + re.sub(DOCSTRING_LINESTART_RE, "\n# ", description.strip()) + "\n"
+            )
+
         if self.skip_annotations == False:
             annotations = [type_to_comment(arg.annotation, i + 1) for i, arg in enumerate(args)]
             annotations = "#\n" + "".join(annotations) if len(annotations) > 0 else ""

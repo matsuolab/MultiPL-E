@@ -18,10 +18,13 @@ class Translator:
 
     def translate_prompt(self, name: str, args: List[ast.arg], _returns, description: str) -> str:
         # print(description)
-        racket_description = (
-            "#lang racket\n\n;; " + description.strip().replace("\n", "\n;; ") +
-            "\n" if description else ""
-        )
+        racket_description = "#lang racket\n\n"
+        if description:
+            racket_description = (
+                "#lang racket\n\n;; " + description.strip().replace("\n", "\n;; ") +
+                "\n" if description else ""
+            )
+
         arg_names = [arg.arg for arg in args]
         arg_list = " ".join(arg_names)
         return f"{racket_description}(define ({name} {arg_list})\n"

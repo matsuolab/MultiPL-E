@@ -644,11 +644,14 @@ class Translator(LanguageTranslator[TargetExp]):
         self.type = [[arg.annotation for arg in args], returns]
 
         comment_start = self.indent + "-- "
-        ada_description = (
-            comment_start
-            + DOCSTRING_LINESTART_RE.sub("\n" + comment_start, description.strip())
-            + "\n"
-        )
+        ada_description = ""
+        if description:
+            ada_description = (
+                comment_start
+                + DOCSTRING_LINESTART_RE.sub("\n" + comment_start, description.strip())
+                + "\n"
+            )
+
         self.subprogram_name = ada_case(name)
         self.subprogram_type = "function"  # Will always use function as all subprograms in MBPP and HumanEval have return types
         self.args_type = [self.translate_pytype(arg.annotation, True) for arg in args]

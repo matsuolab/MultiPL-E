@@ -126,9 +126,12 @@ class Translator(humaneval_to_cpp.Translator):
         class_decl = f"object {SCALA_CLASS_NAME} {{\n"
         indent = "    "
         comment_start = self.indent + "//"
-        java_description = (
-            comment_start +" " + re.sub(DOCSTRING_LINESTART_RE, "\n" + comment_start + " ", description.strip()) + "\n"
-        )
+        java_description = ""
+        if description:
+            java_description = (
+                comment_start +" " + re.sub(DOCSTRING_LINESTART_RE, "\n" + comment_start + " ", description.strip()) + "\n"
+            )
+
         self.args_type = [self.translate_pytype(arg.annotation) for arg in args]
         formal_args = [f"{self.gen_var(arg.arg)[0]} : {self.translate_pytype(arg.annotation)}" for arg in args]
         formal_arg_list = ", ".join(formal_args)

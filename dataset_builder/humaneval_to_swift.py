@@ -631,7 +631,10 @@ class Translator(LanguageTranslator[TargetExp]):
         self.return_type = self.translate_type(returns).simplify(self.needs)
 
         swift_needs = self.needs.gen_prompt_needs()
-        swift_description = "/// " + re.sub(DOCSTRING_LINESTART_RE, "\n/// ", description.strip()) + "\n"
+        swift_description = ""
+        if description:
+            swift_description = "/// " + re.sub(DOCSTRING_LINESTART_RE, "\n/// ", description.strip()) + "\n"
+
         swift_params = ", ".join([f"{name}: {ty.gen_type()}" for name, ty in self.param_names_types])
         swift_return = self.return_type.gen_type()
         return f"{swift_needs}\n{swift_description}func {name}({swift_params}) -> {swift_return} {{\n"

@@ -100,7 +100,8 @@ class Translator:
             return arg.arg + "::" + translate_type(arg.annotation)
         arg_strings = []
         return_type = ""
-        description = f"\"\"\"{description}\"\"\"\n"
+        if description:
+            description = f"\"\"\"{description}\"\"\"\n"
         try:
             arg_strings = [translate_arg(arg) for arg in args]
             return_type = translate_type(returns)

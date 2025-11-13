@@ -98,10 +98,12 @@ class Translator:
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str) -> Optional[str]:
         self.type = [[arg.annotation for arg in args], returns]
 
-        description = (
-            "// " + re.sub(DOCSTRING_LINESTART_RE, "\n// ",
-                           description.strip()) + "\n"
-        )
+        if description:
+            description = (
+                "// " + re.sub(DOCSTRING_LINESTART_RE, "\n// ",
+                            description.strip()) + "\n"
+            )
+
         # Store this for later coercions on tests
         self.type = [[arg.annotation for arg in args], returns]
 

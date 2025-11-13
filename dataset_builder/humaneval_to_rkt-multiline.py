@@ -19,7 +19,10 @@ class Translator:
         return "rkt"
 
     def translate_prompt(self, name: str, args: List[ast.arg], _returns, description: str) -> str:
-        racket_description = "#lang racket\n\n#| " + re.sub(DOCSTRING_LINESTART_RE, "\n", description.strip()) + "|#\n"
+        racket_description = "#lang racket\n\n"
+        if description:
+            racket_description = "#lang racket\n\n#| " + re.sub(DOCSTRING_LINESTART_RE, "\n", description.strip()) + "|#\n"
+
         arg_names = [arg.arg for arg in args]
         arg_list = " ".join(arg_names)
         return f"{racket_description}(define ({name} {arg_list})\n"

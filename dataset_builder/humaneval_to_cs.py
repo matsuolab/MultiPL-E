@@ -118,9 +118,12 @@ class Translator(humaneval_to_cpp.Translator):
         class_decl = f"class {CSHARP_CLASS_NAME} {{\n"
         indent = "    "
         comment_start = self.indent + "//"
-        csharp_description = (
-            comment_start +" " + re.sub(DOCSTRING_LINESTART_RE, "\n" + comment_start + " ", description.strip()
-        ))
+        csharp_description = ""
+        if description:
+            csharp_description = (
+                comment_start +" " + re.sub(DOCSTRING_LINESTART_RE, "\n" + comment_start + " ", description.strip()
+            ))
+
         self.args_type = [self.translate_pytype(arg.annotation) for arg in args]
         formal_args = [f"{self.translate_pytype(arg.annotation)} {self.gen_var(arg.arg)[0]}" for arg in args]
         formal_arg_list = ", ".join(formal_args)

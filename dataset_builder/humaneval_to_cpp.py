@@ -152,14 +152,17 @@ class Translator:
         and include files
         """
         comment_start = "//"
-        CPP_description = (
-            comment_start
-            + " "
-            + re.sub(
-                DOCSTRING_LINESTART_RE, "\n" + comment_start + " ", description.strip()
+        CPP_description = ""
+        if description:
+            CPP_description = (
+                comment_start
+                + " "
+                + re.sub(
+                    DOCSTRING_LINESTART_RE, "\n" + comment_start + " ", description.strip()
+                )
+                + "\n"
             )
-            + "\n"
-        )
+
         self.reinit()
         if any(arg.annotation is None for arg in args) or _returns is None:
             raise Exception("Skipping function with missing annotation")
