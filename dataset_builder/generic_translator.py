@@ -3,6 +3,7 @@
 import argparse
 import ast
 import csv
+import os
 import re
 import traceback
 from glob import glob
@@ -296,7 +297,7 @@ def target_path(args, translator, file):
 
 
 lang_dict = {}
-with open("terms.csv", "r") as of:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "terms.csv")) as of:
     term_list = csv.DictReader(of)
     for row in term_list:
         lang_dict[row["py"]] = row
