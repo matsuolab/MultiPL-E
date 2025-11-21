@@ -71,6 +71,9 @@ class PromptVisitor(ast.NodeVisitor):
             case [ast.Expr(value=ast.Constant(s)), ast.Pass()] if type(s) == str:
                 self.description = s
                 self.state = "complete"
+            case [ast.Pass()]:
+                self.description = ""
+                self.state = "complete"
             case _other:
                 self.state = "error"
 
