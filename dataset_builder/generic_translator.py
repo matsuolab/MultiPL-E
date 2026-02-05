@@ -453,21 +453,9 @@ def get_stop_from_translator(translator) -> List[str]:
 def list_originals(root):
     directory = Path(root).resolve()
     files_unsorted = directory.glob("*.py")
-
-    def key_func(file):
-        filename = str(file.name)
-
-        # ★★★ 修正: sample_X_function_name_cY_aZ.py 形式 ★★★
-        match = re.match(r"sample_(\d+)_[a-zA-Z_][a-zA-Z0-9_]*_c\d+_a\d+", filename)
-        if match:
-            return int(match.group(1))
-
-        # HumanEval_X_*.py 形式
-        match = re.search(r"HumanEval_(\d+)_", filename)
-        if match:
-            return int(match.group(1))
-
-        return 0
+    # assumption: base filenames are in the format of HumanEval_X_*.py, mbpp_X_*.py
+    # Where X is a valid number
+    def key_func(s): return int(str(s.name).split("_")[1])
 
     files_by_number = {key_func(file): file for file in files_unsorted}
     return files_by_number
