@@ -1,3 +1,35 @@
+# MultiPL-E評価@miyabi
+
+## 生成タスク評価のためのコード生成
+- humaneval, mbpp のデータセットで各種言語のコード生成能力を評価する．(MultiPL-E本来の評価方法)
+- 前準備: jobスクリプト内の python環境設定, program格納dirへのpath, dataset, modelなどのpathを自分の環境に書き換える (TODO箇所)
+   - 対象job ファイル: code_trans_llm_dev/MultiPL-E/run_automodel_vllm_miyabi_singleNode.sh
+
+
+## 生成されたコードを，AWS上のMultiPL-Eのコード評価結果の取得とpass@k評価の取得 [単一script]
+- 前準備:
+   - main job scriptの修正
+      ```sh
+      code_trans_llm_dev/translation_task_eval/completion_eval_analysis/run_send_query_miyabi.sh
+      # TODO: sh上で generationタスクである[multi_send_query_generationTask.sh] を実行するよう修正
+      ```
+   - job srciptで呼ばれるmulti_send_query_generationTask.sh の修正
+      - TODOの箇所について自環境に修正
+         ```sh
+         - dataset_type
+         - TARGET_DIR_NAME
+         - OUTPUT_BASE_DIR
+         ...
+
+        # markdown書式のllmを使用する場合に，前処理としてrm_markdown optionを使用
+        python send_query_to_multipl_eval_server_generationTask.py \
+        --query_input_dir "$dir" \
+        --output_base_dir "$OUTPUT_BASE_DIR" \
+        --preprocess_completions_type "rm_markdown" \
+        --num_workers "$NUM_WORKERS" 
+         ```
+
+
 # Multi-Programming Language Evaluation of Large Language Models of Code (MultiPL-E)
 
 **New**: For a more challenging multi-language benchmark, check out [Ag-LiveCodeBench-X](https://github.com/nuprl/Ag-LiveCodeBench-X)
