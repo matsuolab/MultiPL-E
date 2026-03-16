@@ -72,6 +72,7 @@ def main():
     name = do_name_override(args)
     make_main(args, name, model.completions)
 
-
+    del model
+    
 if __name__ == "__main__":
     main()

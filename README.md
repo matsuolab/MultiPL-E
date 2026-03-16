@@ -5,15 +5,13 @@
 - 前準備: jobスクリプト内の python環境設定, program格納dirへのpath, dataset, modelなどのpathを自分の環境に書き換える (TODO箇所)
    - 対象job ファイル: code_trans_llm_dev/MultiPL-E/run_automodel_vllm_miyabi_singleNode.sh
 
+- memo
+   - miyabiで推論が(たぶん)完了後に，vllm関連エラーとしてtorch.OutOfMemoryError: CUDA out of memory.　が出る場合がある．(vllm インスタンスdelしたが効果なし)
+
 
 ## 生成されたコードを，AWS上のMultiPL-Eのコード評価結果の取得とpass@k評価の取得 [単一script]
 - 前準備:
-   - main job scriptの修正
-      ```sh
-      code_trans_llm_dev/translation_task_eval/completion_eval_analysis/run_send_query_miyabi.sh
-      # TODO: sh上で generationタスクである[multi_send_query_generationTask.sh] を実行するよう修正
-      ```
-   - job srciptで呼ばれるmulti_send_query_generationTask.sh の修正
+   - [generationTask] job srciptで呼ばれるrun_multi_send_query_generationTask.sh の修正
       - TODOの箇所について自環境に修正
          ```sh
          - dataset_type
