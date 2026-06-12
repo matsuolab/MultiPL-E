@@ -11,7 +11,7 @@ DOCSTRING_LINESTART_RE = re.compile("""\n(\\s*)""")
 
 class Translator:
 
-    stop = [ '\n(*', '\n//', '\ntype', '\n\n' ]
+    stop = [ '\n(*', '\n//', '\ntype' ]
 
     def file_ext(self):
         return "fs"

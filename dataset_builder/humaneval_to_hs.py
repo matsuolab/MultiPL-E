@@ -39,7 +39,7 @@ class Translator:
     '''Translate Python to Haskell.
     '''
 
-    stop = ["\n\n", "\n{-", "\n-- |", "\n--", "\ntype", "\ndata", "\nnewtype"]
+    stop = ["\n{-", "\n-- |", "\n--", "\ntype", "\ndata", "\nnewtype"]
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str):
         comment_start = "-- | " # haddock comment string

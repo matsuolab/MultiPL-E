@@ -21,7 +21,7 @@ class Translator(LanguageTranslator[TargetExp]):
         return "rb"
 
     def stop(self) -> List[str]:
-        return [ '\nclass', '\ndef', '\n#', '\n\n' ]
+        return [ '\nclass', '\ndef', '\n#' ]
 
 
     def translate_prompt(self, name: str, args: List[ast.arg], _returns: ast.expr, description: str) -> str:

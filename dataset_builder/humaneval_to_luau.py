@@ -130,7 +130,7 @@ def translate_type(t):
 class Translator(LanguageTranslator[TargetExp]):
 
     def stop(self):
-        return ["\nlocal", "\nfunction", "\n--", "\n\n"]
+        return ["\nlocal", "\nfunction", "\n--"]
 
     def file_ext(self) -> str:
         return "luau"

@@ -11,7 +11,7 @@ NULL_DICT = "___null_dict___"
 
 class Translator:
     # TODO: what is the stop sequence for it?
-    stop = ["\n\n", "\nvoid", "\nbool", "\nint"]
+    stop = ["\nvoid", "\nbool", "\nint"]
 
     def file_ext(self):
         return "d"
