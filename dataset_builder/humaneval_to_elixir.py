@@ -21,7 +21,7 @@ class Translator(LanguageTranslator[TargetExp]):
         return "elixir"
 
     def stop(self) -> List[str]:
-        return ["\ndefmodule", "\ndefp", "\ndef ", "\n#", "\n\n"]
+        return ["\ndefmodule", "\ndefp", "\ndef ", "\n#"]
 
     def translate_prompt(
         self, name: str, args: List[ast.arg], _returns: ast.expr, description: str

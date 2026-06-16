@@ -74,7 +74,7 @@ def coerce(expr: str, type) -> str:
 
 class Translator:
 
-    stop = ["\n\n", "\n(*", "\ntype", "\nlet"]
+    stop = ["\n(*", "\ntype", "\nlet"]
 
     def translate_prompt(self, name: str, args: List[ast.arg], returns, description: str):
         if description:

@@ -84,7 +84,7 @@ def coerce(expr: str, type) -> str:
 
 class Translator:
 
-    stop = ["\nfunction", "\nmacro", "\n\n"]
+    stop = ["\nfunction", "\nmacro"]
 
     def __init__(self):
         global needs_hashmap

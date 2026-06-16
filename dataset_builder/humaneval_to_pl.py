@@ -12,7 +12,7 @@ class Translator:
 
     USub = "-"
 
-    stop = [ "\nsub", "\n#", "\n\n" ]
+    stop = [ "\nsub", "\n#" ]
 
     def __init__(self):
         # See translate_pl_without_argnames.py which overrides this.
